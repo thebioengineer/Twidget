@@ -79,6 +79,9 @@ htmlwidgets::saveWidget(
   selfcontained = FALSE
 )
 
-saveWidget(ll,"index.html",selfcontained = TRUE,title = "Population Density")
+saveWidget(ll,
+           "index.html",
+           libdir = "lib",
+           selfcontained = FALSEe,title = "Population Density")
 
 ```
