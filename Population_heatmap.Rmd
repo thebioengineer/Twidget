@@ -1,0 +1,84 @@
+---
+title: "Amazon Heatmap"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+Load necessary libraries
+```{r}
+library(tidyverse)
+library(leaflet)
+library(rvest)
+library(htmlwidgets)
+```
+
+```{r helperFuncs}
+
+calcColor<-function(x,colors=c("white","blue"),...,granularity=100){
+  colfunc <- colorRampPalette(colors,...)
+  colors<-colfunc(granularity)
+  newx<-round((granularity-1 ) * ((x - min(x)) / (max(x) - min(x))))+1
+  colors[newx]
+}
+
+calcRadius<-function(x,maxsize=100,minsize=5,method=scale_sigmoid){
+    oneScaled<-((x - min(x)) / (max(x) - min(x)))
+    (maxsize - minsize) * method(oneScaled)  + minsize;
+}
+
+scale_sigmoid<-function(x){
+  (tanh((x-.5)*2*pi)+1)/2
+}
+
+scale_linear<-function(x){
+  x
+}
+
+```
+
+```{r setup}
+
+population_table<-read_html("https://en.wikipedia.org/wiki/List_of_United_States_cities_by_population")%>%
+  html_table()%>%
+  `[[`(5)
+
+population_table_cleaned<-population_table%>%
+  set_names(c("2017rank","City","State","2017estimate","2010Census" ,"Change",
+              "2016 land area(mi2)","2016 land area(km2)",
+              "2016 population density(mi2)","2016 population density(ki2)",
+              "Location" ))%>%
+  select(City,cencus_population=`2010Census`,Location)%>%
+  mutate(Location = gsub(".+ ([-]*(\\d+)[.](\\d+))[;] ([-]*(\\d+)[.](\\d+)).*","\\1;\\4",Location),
+         City=gsub("\\[.*\\]","",City)) %>%
+  separate(Location,c("lat","long"),";")%>%
+  mutate(lat=as.numeric(lat),
+         long=as.numeric(long),
+         label=paste0(City,"\nPopulation:",cencus_population),
+         population=as.numeric(gsub(",","",cencus_population)))
+
+```
+
+```{r mapping}
+
+ll<-leaflet(population_table_cleaned) %>% 
+  addTiles() %>%
+  addCircleMarkers(
+    lng= ~long,
+    lat= ~lat,
+    radius = ~calcRadius(population,maxsize = 20,minsize=5),
+    popup = ~label,
+    color = ~calcColor(population,color=c("blue","red")),
+    stroke = FALSE,
+    fillOpacity = 0.5
+  )
+
+htmlwidgets::saveWidget(
+  interactive_plot, "index.html", libdir = "lib",
+  title = "Iris Flowers Interactive",
+  selfcontained = FALSE
+)
+
+saveWidget(ll,"index.html",selfcontained = TRUE,title = "Population Density")
+
+```
