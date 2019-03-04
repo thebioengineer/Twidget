@@ -1,11 +1,19 @@
 ---
-title: "Amazon Heatmap"
+title: "Population Leaflet"
 output: html_notebook
 editor_options: 
   chunk_output_type: console
 ---
 
-Load necessary libraries
+# Interactivity
+This weekend I saw a fantastic post shared by [datatitian](https://datatitian.com/how-to-turn-your-ggplot2-visualization-into-an-interactive-tweet/) on how to turn your interactive plots into a card that can be played with in a tweet. Not only is it supremely cool, but I can think of a whole new avenue for sharing visualizations if this strategy can be implemented easily by others. 
+
+In the blog post, Will Murphey uses his website to serve the visualization, and some other tools to help with the html tagging. Unfortunately, I do not currently have a website for serving my visualizations so I thought I would find a hack around that. 
+
+Github and its ecosystem of tools are my solution to this problem. 
+
+#Load Libraries
+Following the pattern from the blog post, I needed the `htmlwidgets` library. For data processing and collection, I used the  `tidyverse` and `rvest` libraries. For generating an interactive plot, I will be using the fantastic `leaflet` library.
 ```{r}
 library(tidyverse)
 library(leaflet)
@@ -13,29 +21,8 @@ library(rvest)
 library(htmlwidgets)
 ```
 
-```{r helperFuncs}
-
-calcColor<-function(x,colors=c("white","blue"),...,granularity=100){
-  colfunc <- colorRampPalette(colors,...)
-  colors<-colfunc(granularity)
-  newx<-round((granularity-1 ) * ((x - min(x)) / (max(x) - min(x))))+1
-  colors[newx]
-}
-
-calcRadius<-function(x,maxsize=100,minsize=5,method=scale_sigmoid){
-    oneScaled<-((x - min(x)) / (max(x) - min(x)))
-    (maxsize - minsize) * method(oneScaled)  + minsize;
-}
-
-scale_sigmoid<-function(x){
-  (tanh((x-.5)*2*pi)+1)/2
-}
-
-scale_linear<-function(x){
-  x
-}
-
-```
+# Dataset
+The dataset I chose to use is scraped from wikipedia, and is a list of cities in the US and their populations. This dataset also included the latitude and longitudes of the cities, helping make it a 'one-spot-shop' for me to get everything for my visualization. 
 
 ```{r setup}
 
@@ -59,7 +46,31 @@ population_table_cleaned<-population_table%>%
 
 ```
 
+# Plotting
+Making the viz was based on reading through the examples and some trial and error. I created some helper functions to provide scaling of the datasets to be fed into the leaflet object.
+
 ```{r mapping}
+
+calcColor<-function(x,colors=c("white","blue"),...,granularity=100){
+  colfunc <- colorRampPalette(colors,...)
+  colors<-colfunc(granularity)
+  newx<-round((granularity-1 ) * ((x - min(x)) / (max(x) - min(x))))+1
+  colors[newx]
+}
+
+calcRadius<-function(x,maxsize=100,minsize=5,method=scale_sigmoid){
+    oneScaled<-((x - min(x)) / (max(x) - min(x)))
+    (maxsize - minsize) * method(oneScaled)  + minsize;
+}
+
+scale_sigmoid<-function(x){
+  (tanh((x-.5)*2*pi)+1)/2
+}
+
+scale_linear<-function(x){
+  x
+}
+
 
 ll<-leaflet(population_table_cleaned) %>% 
   addTiles() %>%
@@ -73,15 +84,37 @@ ll<-leaflet(population_table_cleaned) %>%
     fillOpacity = 0.5
   )
 
-htmlwidgets::saveWidget(
-  interactive_plot, "index.html", libdir = "lib",
-  title = "Iris Flowers Interactive",
-  selfcontained = FALSE
-)
-
-saveWidget(ll,
-           "index.html",
-           libdir = "lib",
-           selfcontained = FALSEe,title = "Population Density")
 
 ```
+
+# Saving
+In order to make the plot useable, I need to save the plot using the "saveWidget" function from `htmlwidgets`
+
+```{r save plot}
+saveWidget(ll,
++            "population_widget.html",
++            libdir = "lib",
++            selfcontained = FALSE,
++            title = "Population Density")
+
+```
+
+# Making the Twitter card
+Now the most important part of the process is editing the html to add the necessary meta elements to make twitter recognize how to handle the visualization and render it inside the twitter card. 
+
+Will Murphey had provided a list of the tags he used, but not how to add them. Since he was using wordpress to host his sites, he was able to use a tool to add it. Since, I am not I went into the html that is generating the blog post and figured out the meta tags he used and their formats. I then altered them for my use. 
+
+## Rendering HTML
+The most important meta element appears to be the 'twitter:player' meta element. This is where you tell twitter the URL to go to to render in the card. Since github's raw file viewer prevents the rendering of the HTML directly this causes some issues. Thankfully I found a site, called [https://raw.githack.com/'](https://raw.githack.com/) that converts the raw urls into fully served webpages. it has two options for production or testing. Since we want to be nice to the developer, I will be using the production version. This uses CloudFlare's CDN. All that needs to be done is to enter the url of the github file to render, and it generates a link to use. 
+
+Since I posted my visualization onto 'https://github.com/thebioengineer/Twidget/blob/master/population_widget.html', I entered that into the websites converter. I was fed back the following url to use for production; 'https://rawcdn.githack.com/thebioengineer/Twidget/da435b815d4a845e651d932d4a8ffef71439a15b/population_widget.html'. The following are the html 
+
+## Adding the html elements
+Now that I had all the information I needed to enter into the meta elements, I opened the html file in RStudio and added them in.
+
+[]
+
+
+
+
+
