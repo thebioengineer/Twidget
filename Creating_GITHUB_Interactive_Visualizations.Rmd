@@ -1,9 +1,7 @@
 ---
 title: "Creating Github-based Interactive Graphics" 
 output:
-  html_document:
-    includes:
-      in_header: render_vis.html
+  github_document
 editor_options:
   chunk_output_type: console
 ---
