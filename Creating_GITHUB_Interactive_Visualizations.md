@@ -119,7 +119,7 @@ Adding the html elements
 
 Now that I had all the information I needed to enter into the meta elements, I opened the html file in RStudio and added them into the 'head' portion of the html file. I based the location based on the other 'meta' element.
 
-![As you can see, there are a few options](editing_html.png)
+![As you can see, there are a few options](editing_html.PNG)
 
 Below is the text for you to copy:
 
@@ -142,4 +142,4 @@ Now that everything is set up, I can just put the raw link to the github code vi
 
 Once again, as Will Murphey said in his article, you can test your code and the visualization using the [twitter card validator](https://cards-dev.twitter.com/validator). Thank you so much for not only sharing this AWESOME idea, but the steps you took to perform this. It was inspiring and very exciting for me to hack this together on my sunday afternoon.
 
-![The Results!](testing_html.png)
+![The Results!](testing_html.PNG)
