@@ -1,7 +1,10 @@
 ---
-title: "Population Leaflet"
-output: html_notebook
-editor_options: 
+title: "Creating Github-based Interactive Graphics" 
+output:
+  html_document:
+    includes:
+      in_header: render_vis.html
+editor_options:
   chunk_output_type: console
 ---
 
@@ -10,11 +13,11 @@ This weekend I saw a fantastic post shared by [datatitian](https://datatitian.co
 
 In the blog post, Will Murphey uses his website to serve the visualization, and some other tools to help with the html tagging. Unfortunately, I do not currently have a website for serving my visualizations so I thought I would find a hack around that. 
 
-Github and its ecosystem of tools are my solution to this problem. 
+Github and its ecosystem of tools are my solution to this problem. I don't claim to say that I knew what I was doing. In fact, it was a lot of trial and error combined with Will's great tutorial.
 
 #Load Libraries
 Following the pattern from the blog post, I needed the `htmlwidgets` library. For data processing and collection, I used the  `tidyverse` and `rvest` libraries. For generating an interactive plot, I will be using the fantastic `leaflet` library.
-```{r}
+```{r load_libaries, eval=FALSE}
 library(tidyverse)
 library(leaflet)
 library(rvest)
@@ -24,7 +27,7 @@ library(htmlwidgets)
 # Dataset
 The dataset I chose to use is scraped from wikipedia, and is a list of cities in the US and their populations. This dataset also included the latitude and longitudes of the cities, helping make it a 'one-spot-shop' for me to get everything for my visualization. 
 
-```{r setup}
+```{r data_setup, eval=FALSE}
 
 population_table<-read_html("https://en.wikipedia.org/wiki/List_of_United_States_cities_by_population")%>%
   html_table()%>%
@@ -49,7 +52,7 @@ population_table_cleaned<-population_table%>%
 # Plotting
 Making the viz was based on reading through the examples and some trial and error. I created some helper functions to provide scaling of the datasets to be fed into the leaflet object.
 
-```{r mapping}
+```{r mapping, eval=FALSE}
 
 calcColor<-function(x,colors=c("white","blue"),...,granularity=100){
   colfunc <- colorRampPalette(colors,...)
@@ -90,12 +93,12 @@ ll<-leaflet(population_table_cleaned) %>%
 # Saving
 In order to make the plot useable, I need to save the plot using the "saveWidget" function from `htmlwidgets`
 
-```{r save plot}
+```{r save_plot, eval=FALSE}
 saveWidget(ll,
-+            "population_widget.html",
-+            libdir = "lib",
-+            selfcontained = FALSE,
-+            title = "Population Density")
+           "population_widget.html",     
+           libdir = "lib",
+           selfcontained = FALSE,
+           title = "Population Density")
 
 ```
 
@@ -110,10 +113,33 @@ The most important meta element appears to be the 'twitter:player' meta element.
 Since I posted my visualization onto 'https://github.com/thebioengineer/Twidget/blob/master/population_widget.html', I entered that into the websites converter. I was fed back the following url to use for production; 'https://rawcdn.githack.com/thebioengineer/Twidget/da435b815d4a845e651d932d4a8ffef71439a15b/population_widget.html'. The following are the html 
 
 ## Adding the html elements
-Now that I had all the information I needed to enter into the meta elements, I opened the html file in RStudio and added them in.
+Now that I had all the information I needed to enter into the meta elements, I opened the html file in RStudio and added them into the 'head' portion of the html file. I based the location based on the other 'meta' element.
 
-[]
+![As you can see, there are a few options](editing_html.png)
 
+
+Below is the text for you to copy:
+```
+<!--Twitter interactive information-->
+<meta name="twitter:card" content="player"/>
+<meta name="twitter:site" content="@USERNAME"/> <!--twitter handle-->
+<meta name="twitter:title" content="Twidget: US Population"/> <!--twitter card title-->
+<meta name="twitter:description" content="Click to play! Twidget Serving through github"/> <!--twitter card description-->
+<meta name="twitter:player" content="GITHACK_CDN_URL" /> <!--raw.githack.com CDN url-->
+<meta name="twitter:player:width" content="517" /> 
+<meta name="twitter:player:height" content="408" />
+<meta name="twitter:image" content="http://www.edu.uwo.ca/img/click_to_play.png" /> <!--twitter card image before rendering player-->
+```
+Now that everything is there, I pushed to github. 
+
+# The final Presentation!
+
+Now that everything is set up, I can just put the raw link to the github code via 'https://github.com/thebioengineer/Twidget/blob/master/population_widget.html?raw=true' into my twitter posts and it will render. 
+
+Once again, as Will Murphey said in his article, you can test your code and the visualization using the [twitter card validator](https://cards-dev.twitter.com/validator). Thank you so much for not only sharing this AWESOME idea, but the steps you took to perform this. It was inspiring and very exciting for me to hack this together on my sunday afternoon. 
+
+
+![The Results!](testing_html.png)
 
 
 
